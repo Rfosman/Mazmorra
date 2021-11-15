@@ -38,7 +38,6 @@ function inicializa(){
         if(tecla.key=='ArrowUp'){
             protagonista.arriba();
         }
-      
         if(tecla.key=='ArrowDown'){
             protagonista.abajo();
         }
