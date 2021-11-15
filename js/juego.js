@@ -192,6 +192,6 @@ function principal(){
     borraCanvas();
     dibujaEscenario();
     protagonista.dibuja();
-    //mario.dibuja();
+    mario.dibuja();
 
 }
