@@ -17,16 +17,22 @@ var puerta = '#3a1700';
 var tierra = '#c6892f';
 var llave = '#c6bc00';
 
+var protagonista ;
 var imgMario;
+
+var tileMap;
 
 
 function inicializa(){
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
+    tileMap = new Image();
+    tileMap.src ='img/tilemap3.png';
+
     //cargamos imagen de MARIO:
     imgMario= new Image();
-    imgMario.src='/img/mariopng.png';    
+    imgMario.src='img/mariopng.png';    
 
     // CREAMOS AL JUGADOR
     
@@ -78,21 +84,20 @@ var escenario = [
 ];
 
 function dibujaEscenario(){
-    var color;
+    
     for(y=0;y<10;y++){
         for(x=0;x<15;x++){
-            if(escenario[y][x]==0)
-                color=muro;
-            if(escenario[y][x]==1)
-                color=puerta;
-            if(escenario[y][x]==2)
-                color=tierra;
-            if(escenario[y][x]==3)
-                color=llave;
-                           
-            ctx.fillStyle = color;
-            ctx.fillRect(x*anchoF,y*altoF,anchoF,altoF);
+           
+            var tile = escenario[y][x];                   
+            //ctx.fillStyle = color;
+            //ctx.fillRect(x*anchoF,y*altoF,anchoF,altoF);
             //ctx.drawImage('img/mariopng',40,40);
+
+       ctx.drawImage(tileMap,tile*32,0,32,32,x*anchoF,y*altoF,anchoF,altoF);
+        //       (imatge,posicio en la columna de la imatge,
+        //            ,fila-y's- 0,mida pixels del retall[32,32],
+        //           a on del canvas,y l'alto y ancho)
+        
 
         }   
     }
@@ -106,8 +111,10 @@ var jugador = function (){
     this.llave = false;
 
     this.dibuja = function(){
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x*anchoF,this.y*altoF,anchoF,altoF);
+        //ctx.fillStyle = this.color;
+        //ctx.fillRect(this.x*anchoF,this.y*altoF,anchoF,altoF);
+
+    ctx.drawImage(tileMap,32,32,32,32,this.x*anchoF,this.y*altoF,anchoF,altoF);
     }
 
     this.margenes = function(x,y){
@@ -176,7 +183,6 @@ var jugador = function (){
 
 
 
-var protagonista ;
 
 //ctx.drawImage('img/mariopng.png',33, 71, 104, 124, 21, 20, 87, 104);
 
@@ -191,6 +197,6 @@ function principal(){
     borraCanvas();
     dibujaEscenario();
     protagonista.dibuja();
-    mario.dibuja();
+    //mario.dibuja();
 
 }
