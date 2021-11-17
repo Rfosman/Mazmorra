@@ -18,7 +18,9 @@ var tierra = '#c6892f';
 var llave = '#c6bc00';
 
 var protagonista ;
-var imgMario;
+var enemigo=[];
+
+var imagenAntorcha ;
 
 var tileMap;
 
@@ -28,15 +30,23 @@ function inicializa(){
     ctx = canvas.getContext('2d');
 
     tileMap = new Image();
-    tileMap.src ='img/tilemap3.png';
+    tileMap.src ='img/tilemap.png';
 
-    //cargamos imagen de MARIO:
-    imgMario= new Image();
-    imgMario.src='img/mariopng.png';    
+     
 
     // CREAMOS AL JUGADOR
     
     protagonista = new jugador();
+
+    //CREAMOS LA ANTORCHA
+
+    imagenAntorcha = new antorcha(0,0);
+
+    //CREAMOS ENEMIGOS
+
+    enemigo.push(new malo(3,3));
+    enemigo.push(new malo(5,7));
+    enemigo.push(new malo(7,7));
 
     //LECTURA DE TECLADO
     document.addEventListener('keydown', function(tecla){
@@ -61,14 +71,7 @@ function inicializa(){
     
 }
 
-var personajeMario =function(x,y){
-    this.x=x;
-    this.y=y;
-    this.dibuja =function(){
-        ctx.drawImage(imgMario,this.x,this.y);
-    }
-}
-var mario = new personajeMario(200,200);
+
 
 var escenario = [
  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -103,6 +106,121 @@ function dibujaEscenario(){
     }
     
 }
+
+var antorcha = function(x,y){
+    this.x = x;
+    this.y = y;
+
+    this.retraso = 10;
+    this.contador = 0;
+    this.fotograma = 0; // 0-3
+
+    this.cambiaFotograma = function(){
+        if(this.fotograma < 3){
+            this.fotograma++;
+        }
+        else{
+            this.fotograma = 0;
+        }
+    }
+
+
+    this.dibuja = function(){
+
+        if(this.contador < this.retraso){
+            this.contador++;
+        }
+        else{
+            this.contador = 0;
+            this.cambiaFotograma();
+        }
+        ctx.drawImage(tileMap,this.fotograma*32,64,32,32,x*anchoF,y*altoF,anchoF,altoF);
+    }
+
+}
+
+function dibujaAntorcha(){
+    ctx.drawImage(tileMap,tile*32,0,32,32,x*anchoF,y*altoF,anchoF,altoF);
+}
+
+//CLASE ENEMIGO
+var malo = function (x,y){
+    this.x=x;
+    this.y=y;
+
+    this.direccion = Math.floor(Math.random()*4);
+
+    this.retraso = 25;
+    this.fotograma = 0;
+
+    this.dibuja = function(){
+        ctx.drawImage(tileMap,0,32,32,32,this.x*anchoF,this.y*altoF,anchoF,altoF);
+    }
+
+    this.compruebaColision = function(x,y){
+        var colisiona = false;
+
+        if(escenario[y][x]==0){
+            colisiona = true;
+        }
+        return colisiona;
+    }
+
+    this.mueve = function(){
+
+        protagonista.colisionEnemigo(this.x, this.y);
+
+        if(this.contador < this.retraso){
+            this.contador++;
+        }
+        
+        else{
+            this.contador = 0;
+        //ARRIBA
+        if(this.direccion==0){
+            if(this.compruebaColision(this.x, this.y -1) == false){
+                this.y--;
+            }
+            else{
+                this.direccion = Math.floor(Math.random()*4);
+            }
+        }
+
+        //ABAJO
+        if(this.direccion==1){
+            if(this.compruebaColision(this.x, this.y +1)==false){
+                this.y++;
+            }
+            else{
+                this.direccion = Math.floor(Math.random()*4);
+            }
+        }
+        //IZQUIERDA
+        if(this.direccion==2){
+            if(this.compruebaColision(this.x-1,this.y)==false){
+                this.x--;
+            }
+            else{
+                this.direccion = Math.floor(Math.random()*4);
+            }
+        }
+        //DERECHA
+        if(this.direccion==3){
+            if(this.compruebaColision(this.x+1,this.y)==false){
+                this.x++;
+            }
+            else{
+                this.direccion = Math.floor(Math.random()*4);
+            }
+        }
+            }
+
+    }
+
+}
+
+
+
 //OBJETO DEL JUGADOR
 var jugador = function (){
     this.x=1;
@@ -111,11 +229,16 @@ var jugador = function (){
     this.llave = false;
 
     this.dibuja = function(){
-        //ctx.fillStyle = this.color;
-        //ctx.fillRect(this.x*anchoF,this.y*altoF,anchoF,altoF);
-
-    ctx.drawImage(tileMap,32,32,32,32,this.x*anchoF,this.y*altoF,anchoF,altoF);
+        ctx.drawImage(tileMap,32,32,32,32,this.x*anchoF,this.y*altoF,anchoF,altoF);
     }
+
+    this.colisionEnemigo = function(x,y){
+        if(this.x == x && this.y ==y){
+            this.muerte();
+        }
+    }
+
+
 
     this.margenes = function(x,y){
         var colision = false;
@@ -159,6 +282,14 @@ var jugador = function (){
         escenario[8][3]=3;
     }
 
+    this.muerte = function(){
+        console.log('Has perdido!');
+        this.x = 1;
+        this.y = 1;
+        this.llave = false;
+        escenario[8][3]=3;
+    }
+
     this.logicaObjetos = function(){
         var objeto = escenario[this.y][this.x];
         //OBTIENE LLAVE
@@ -196,7 +327,12 @@ function borraCanvas(){
 function principal(){
     borraCanvas();
     dibujaEscenario();
+    imagenAntorcha.dibuja();
     protagonista.dibuja();
-    //mario.dibuja();
+    
+    for(c=0; c<enemigo.length;c++){
+        enemigo[c].mueve();
+        enemigo[c].dibuja();
+    }
 
 }
